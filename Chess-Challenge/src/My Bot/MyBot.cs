@@ -5,11 +5,8 @@ public class MyBot : IChessBot {
     int[] pieceValues = { 0, 100, 300, 300, 500, 900, 10000 };
     public Move Think(Board board, Timer t) {
         Move[] moves = board.GetLegalMoves();
-        
-        Console.WriteLine(Search(5,  int.MinValue, int.MaxValue, board).Item1);
 
-        Move moveToPlay = Search(5, int.MinValue, int.MaxValue, board).Item2;
-        Console.WriteLine(moveToPlay);
+        Move moveToPlay = Search(4, int.MinValue, int.MaxValue, board).Item2;
         return moveToPlay;
     }
 
@@ -39,7 +36,24 @@ public class MyBot : IChessBot {
 
         int finalEval = pieceEval;
 
-        return finalEval;
+        return finalEval * perspective;
+    }
+
+    //TODO: Finish odering move algorithm and add it
+    int SearchAllCapture(int alpha, int beta, Board board) {
+        int eval = Evaluate(board);
+        if(eval >= beta) {
+            return beta;
+        }
+        alpha = Math.Max(alpha, eval);
+
+        Move[] moves = board.GetLegalMoves(true);
+        
+        foreach(Move move in moves) {
+            board.MakeMove(move);
+        }
+        
+        return alpha;
     }
 
 
@@ -90,28 +104,5 @@ public class MyBot : IChessBot {
         }
 
 
-        //Move searchBestMove = Move.NullMove;
-        //Move currentBestMove = Move.NullMove;
-
-        //int bestEval = int.MinValue;
-        //if (depth == 0) {
-        //    return Tuple.Create(Evaluate(board), currentBestMove);
-        //}
-
-
-        //    foreach (Move move in moves) {
-        //        board.MakeMove(move);
-        //        int eval = -Search(depth - 1, -beta, -alpha, board).Item1;
-        //        if (eval > bestEval) {
-        //            bestEval = eval;
-        //            currentBestMove = move;
-        //        }
-        //        board.UndoMove(move);
-        //    }
-
-        //    if (depth == 4) {
-        //        searchBestMove = currentBestMove;
-        //    }
-        //}
     }
 }
