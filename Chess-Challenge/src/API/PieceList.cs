@@ -28,7 +28,6 @@ namespace ChessChallenge.API
             IsWhitePieceList = Chess.PieceHelper.IsWhite(piece);
         }
 
-
         public Piece this[int index] => board.GetPiece(new Square(list[index]));
 
         // Allow piece list to be iterated over with 'foreach'
