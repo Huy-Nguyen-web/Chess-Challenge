@@ -63,13 +63,14 @@ public class MyBot : IChessBot {
         Move[] moves = board.GetLegalMoves();
         Move[] orderMoves = OrderMoveByMVVLVA(moves);
 
-        Move bestMove = Move.NullMove;
+        Move bestMove ;
         if (moves.Length == 0) {
             if (board.IsInCheck()) {
                 return Tuple.Create(int.MinValue, Move.NullMove);
             }
             return Tuple.Create(0, Move.NullMove);
         }
+        bestMove = orderMoves[0];
         if (board.IsWhiteToMove) {
             int maxEval = int.MinValue;
             foreach (Move move in orderMoves) {
