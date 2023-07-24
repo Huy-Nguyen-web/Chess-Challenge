@@ -1,11 +1,12 @@
 ﻿using ChessChallenge.API;
 using System;
+using System.Collections.Generic;
 
 public class MyBot : IChessBot {
+    // Bot version 0.1
+
     int[] pieceValues = { 0, 100, 300, 300, 500, 900, 10000 };
     public Move Think(Board board, Timer t) {
-        //Move[] moves = board.GetLegalMoves();
-
         Move moveToPlay = Search(5, int.MinValue, int.MaxValue, board).Item2;
         return moveToPlay;
     }
@@ -27,18 +28,15 @@ public class MyBot : IChessBot {
         int whiteEval = CountMaterial(true, board);
         int blackEval = CountMaterial(false, board);
 
-        // if positive then it's advantage for white, else is advantage for black
         int pieceEval = whiteEval - blackEval;
-        //// if black is to move, then it should be black advantage, then it's should be positive if the player is black
-        int perspective = (board.IsWhiteToMove) ? 1 : -1;
-        //int checkValue = board.IsInCheck()? 1000 : 0;
-
-
         int finalEval = pieceEval;
 
         return finalEval;
     }
 
+
+
+    // Add order move by MVVLVA value
     int GetMVVLVAValue(Move move) {
         if (move.IsCapture) {
             return (pieceValues[(int)move.CapturePieceType] - pieceValues[(int)move.MovePieceType]);
