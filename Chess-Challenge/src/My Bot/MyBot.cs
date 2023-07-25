@@ -1,13 +1,25 @@
 ﻿using ChessChallenge.API;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 
 public class MyBot : IChessBot {
-    // Bot version 0.1
+    // Bot version 0.2
 
     int[] pieceValues = { 0, 100, 300, 300, 500, 900, 10000 };
     public Move Think(Board board, Timer t) {
-        Move moveToPlay = Search(5, int.MinValue, int.MaxValue, board).Item2;
+        // If not endgame then search for 5 moves ahead.
+        int countDepth;
+        if (CountMaterial(true, board) <= 1000 || CountMaterial(false, board) <= 1000) {
+            if (CountMaterial(true, board) <= 600 || CountMaterial(false, board) <= 600) {
+                countDepth = 6;
+            } else {
+                countDepth = 5;
+            }
+        } else {
+            countDepth = 4;
+        }
+        Move moveToPlay = Search(countDepth, int.MinValue, int.MaxValue, board).Item2;
         return moveToPlay;
     }
 
@@ -24,16 +36,36 @@ public class MyBot : IChessBot {
         return material;
     }
 
+    int CountMobility(bool isWhite, Board board) {
+        int moveCount ;
+        if((board.IsWhiteToMove && isWhite) || (!board.IsWhiteToMove && !isWhite)) {
+            moveCount = board.GetLegalMoves().Length;
+        } else {
+            if (board.TrySkipTurn()) {
+                moveCount = board.GetLegalMoves().Length;
+                board.UndoSkipTurn();
+            } else {
+                moveCount = 0;
+            }
+        }
+        return moveCount;
+    }
+
     int Evaluate(Board board) {
         int whiteEval = CountMaterial(true, board);
         int blackEval = CountMaterial(false, board);
+        
+        int whiteMobility = CountMobility(true, board);
+        int blackMobility = CountMobility(false, board);
 
         int pieceEval = whiteEval - blackEval;
-        int finalEval = pieceEval;
+        int mobilityEval = whiteMobility - blackMobility;
+        
 
-        return finalEval;
+        int finalEval = pieceEval + mobilityEval * 10;
+
+        return finalEval ;
     }
-
 
 
     // Add order move by MVVLVA value
@@ -44,10 +76,11 @@ public class MyBot : IChessBot {
         return -pieceValues[(int) move.MovePieceType];
     }
 
-    Move[] OrderMoveByMVVLVA(Move[] moves) {
+    Move[] OrderMove(Move[] moves, Board board) {
+        int mobility = CountMobility(board.IsWhiteToMove, board);
         Array.Sort(moves, (move1, move2) => {
-            int mvvLvaValue1 = GetMVVLVAValue(move1);
-            int mvvLvaValue2 = GetMVVLVAValue(move2);
+            int mvvLvaValue1 = GetMVVLVAValue(move1) + mobility;
+            int mvvLvaValue2 = GetMVVLVAValue(move2) + mobility;
             return mvvLvaValue2.CompareTo(mvvLvaValue1);
         });
         return moves;
@@ -59,15 +92,21 @@ public class MyBot : IChessBot {
         }
 
         Move[] moves = board.GetLegalMoves();
-        Move[] orderMoves = OrderMoveByMVVLVA(moves);
+        Move[] orderMoves = OrderMove(moves, board);
+        if(!board.IsWhiteToMove) Array.Reverse(orderMoves);
 
-        Move bestMove ;
+        Move bestMove;
         if (moves.Length == 0) {
             if (board.IsInCheck()) {
-                return Tuple.Create(int.MinValue, Move.NullMove);
+                if(board.IsWhiteToMove)
+                    return Tuple.Create(int.MinValue, Move.NullMove);
+                else {
+                    return Tuple.Create(int.MaxValue, Move.NullMove);
+                }
             }
             return Tuple.Create(0, Move.NullMove);
         }
+        
         bestMove = orderMoves[0];
         if (board.IsWhiteToMove) {
             int maxEval = int.MinValue;
