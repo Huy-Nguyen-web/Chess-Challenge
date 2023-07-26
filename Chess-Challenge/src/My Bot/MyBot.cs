@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 
 public class MyBot : IChessBot {
-    // Bot version 0.2
+    // Bot version 0.3
 
     int[] pieceValues = { 0, 100, 300, 300, 500, 900, 10000 };
     public Move Think(Board board, Timer t) {
@@ -112,7 +112,16 @@ public class MyBot : IChessBot {
             int maxEval = int.MinValue;
             foreach (Move move in orderMoves) {
                 board.MakeMove(move);
-                int currentEval = Search(depth - 1, alpha, beta, board).Item1;
+                int currentEval;
+                if (board.IsInCheck()) {
+                    if (!board.IsDraw()) {
+                        currentEval = Search(depth, alpha, beta, board).Item1;
+                    } else {
+                        currentEval = 0;
+                    }
+                } else {
+                    currentEval = Search(depth - 1, alpha, beta, board).Item1;
+                }
                 board.UndoMove(move);
 
                 if (currentEval > maxEval) {
@@ -128,7 +137,16 @@ public class MyBot : IChessBot {
             int minEval = int.MaxValue;
             foreach (Move move in orderMoves) {
                 board.MakeMove(move);
-                int currentEval = Search(depth - 1, alpha, beta, board).Item1;
+                int currentEval;
+                if (board.IsInCheck()) {
+                    if (!board.IsDraw()) {
+                        currentEval = Search(depth, alpha, beta, board).Item1;
+                    } else {
+                        currentEval = 0;
+                    }
+                } else {
+                    currentEval = Search(depth - 1, alpha, beta, board).Item1;
+                }
                 board.UndoMove(move);
 
                 if (currentEval < minEval) {
